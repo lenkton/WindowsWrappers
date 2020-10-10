@@ -160,22 +160,14 @@ namespace antonov {
 	private: 
 		
 		static std::unordered_map<HWND, WNDWRAPPER*> pointers;
-		//static std::list<WNDWRAPPER> instances;
 
 		HWND hwnd;
 		static LRESULT (*defProc)(HWND,UINT, WPARAM,LPARAM);
 
 		
-		//static bool isRegistred;
-		//static WNDCLASSEX wndClassEx;
-		
 	protected:
-		WNDWRAPPER() :hwnd(0) {}
-		WNDWRAPPER(HWND _hwnd) :hwnd(_hwnd) {}
-		virtual ~WNDWRAPPER(){}
+		
 		virtual LRESULT destroy(WPARAM wParam, LPARAM lParam) {
-			/*PostQuitMessage(0);
-			return 0;*/
 			return this->defProc(*this, WM_DESTROY, wParam, lParam);
 		}
 		virtual LRESULT paint(WPARAM wParam, LPARAM lParam) {
@@ -183,7 +175,9 @@ namespace antonov {
 		}
 		virtual LRESULT create(CREATESTRUCT* pcs) {
 			return this->defProc(*this, WM_CREATE, 0, (LPARAM)pcs);
-			//return DefWindowProc(hwnd, WM_CREATE, 0, (LPARAM)pcs);
+		}
+		virtual LRESULT setFocus(WPARAM wParam, LPARAM lParam) {
+			return this->defProc(*this, WM_CREATE, wParam, lParam);
 		}
 		virtual LRESULT size(WPARAM wParam, LPARAM lParam) {
 			return this->defProc(*this, WM_SIZE, wParam, lParam);
@@ -191,16 +185,25 @@ namespace antonov {
 		virtual LRESULT mouseMove(WPARAM wParam, LPARAM lParam) {
 			return this->defProc(*this, WM_MOUSEMOVE, wParam, lParam);
 		}
+		virtual LRESULT commandMessage(WPARAM wParam, LPARAM lParam) {
+			return this->defProc(*this, WM_MOUSEMOVE, wParam, lParam);
+		}
+		virtual LRESULT timerMessage(WPARAM wParam, LPARAM lParam) {
+			return this->defProc(*this, WM_MOUSEMOVE, wParam, lParam);
+		}
 		
 		
 	public:
+		WNDWRAPPER() :hwnd(0) {}
+		WNDWRAPPER(HWND _hwnd) :hwnd(_hwnd) {}
+		virtual ~WNDWRAPPER() {};
 		antonov::GetDCWrapper getDC() {
 			return antonov::GetDCWrapper(hwnd);
 		}
 		antonov::PaintHDC startPaint() {
 			return antonov::PaintHDC(hwnd);
 		}
-		static ATOM reg(HINSTANCE _hInstance) {};
+		//static ATOM reg(HINSTANCE _hInstance) {};
 
 		template <typename T>
 		static LRESULT CALLBACK wndProcAdapter(
@@ -208,8 +211,7 @@ namespace antonov {
 			switch (iMsg)
 			{
 			case WM_CREATE:
-				pointers[_hwnd] = new T{ _hwnd };
-				//createT<T>(_hwnd, (LPCREATESTRUCT)lParam);
+				pointers[_hwnd] = new T(_hwnd);
 				return pointers[_hwnd]->create((LPCREATESTRUCT)lParam);
 			case WM_MOUSEMOVE:
 				return pointers[_hwnd]->mouseMove(wParam, lParam);
