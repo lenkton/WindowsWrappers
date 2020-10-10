@@ -204,12 +204,18 @@ namespace antonov {
 			return antonov::PaintHDC(hwnd);
 		}
 		//static ATOM reg(HINSTANCE _hInstance) {};
-
+		
 		template <typename T>
 		static LRESULT CALLBACK wndProcAdapter(
 			HWND _hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 			switch (iMsg)
 			{
+			case WM_COMMAND:
+				return pointers[_hwnd]->commandMessage(wParam, lParam);
+			case WM_SETFOCUS:
+				return pointers[_hwnd]->setFocus(wParam, lParam);
+			case WM_TIMER:
+				return pointers[_hwnd]->timerMessage(wParam, lParam);
 			case WM_CREATE:
 				pointers[_hwnd] = new T(_hwnd);
 				return pointers[_hwnd]->create((LPCREATESTRUCT)lParam);
